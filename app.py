@@ -5,8 +5,8 @@ from sqlalchemy import exc
 import json
 from flask_cors import CORS
 
-from .database.models import db_drop_and_create_all, setup_db,db,Users,Movies
-from .auth.auth import AuthError, requires_auth
+from database.models import db_drop_and_create_all, setup_db,db,Users,Movies
+from auth.auth import AuthError, requires_auth
 
 app = Flask(__name__)
 setup_db(app)
@@ -15,6 +15,17 @@ db.init_app(app)
 
 with app.app_context():
     db_drop_and_create_all()
+
+
+@app.route('/', methods=['GET'])
+def firstview(): 
+
+    return jsonify({ 
+        'success': True, 
+        'Hello' : "Welcome" 
+        })
+
+
 
 @app.route('/viewusers', methods=['GET'])
 def viewusers(): 
@@ -28,8 +39,8 @@ def viewusers():
         })
 
 @app.route('/createuser/<name>/<email>/<gender>', methods=['POST'])
-#@requires_auth('post:users')
-def createuser(name, email, gender):
+@requires_auth('post:users')
+def createuser(payload,name, email, gender):
     try:
         new_user = Users(name=name, email=email, gender=gender)
         db.session.add(new_user)

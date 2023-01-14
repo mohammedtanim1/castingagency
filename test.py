@@ -3,8 +3,8 @@ import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
 
-from flaskr import create_app
-from models import setup_db, Question, Category
+from app import create_app
+from models import setup_db, Users
 
 
 class castingagencytest(unittest.TestCase):
@@ -34,7 +34,7 @@ class castingagencytest(unittest.TestCase):
     Write at least one test for each test for successful operation and for expected errors.
     """
     def viewusersvalidURL(self):
-        res = self.client().get("/viewusers", json={"rating": 1})
+        res = self.client().get("/viewusers")
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -42,7 +42,7 @@ class castingagencytest(unittest.TestCase):
         self.assertEqual(data["message"], "Resources found")
 
     def viewusersinvalidURL(self):
-        res = self.client().get("/viewusers12", json={"rating": 1})
+        res = self.client().get("/viewusers12")
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -53,7 +53,8 @@ class castingagencytest(unittest.TestCase):
 
 
     def createvalidparameters(self):
-        res = self.client().post("/createuser/Tanim/Tanom1@example.com/male", json={"rating": 1})
+        headers = {'Authorization': 'Bearer ' + self.valid_token}
+        res = self.client().post("/createuser/Tanim/Tanom1@example.com/male",headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -61,7 +62,8 @@ class castingagencytest(unittest.TestCase):
         self.assertEqual(data["message"], "Resources found")
 
     def createinvalidparameters(self):
-        res = self.client().post("/createuser/Tanim1", json={"rating": 1})
+        headers = {'Authorization': 'Bearer ' + self.valid_token}
+        res = self.client().post("/createuser/Tanim1",headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -72,7 +74,8 @@ class castingagencytest(unittest.TestCase):
 
 
     def deleteexisitingid(self):
-        res = self.client().delete("/deleteuser/1", json={"rating": 1})
+        headers = {'Authorization': 'Bearer ' + self.valid_token}
+        res = self.client().delete("/deleteuser/1",headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -80,7 +83,8 @@ class castingagencytest(unittest.TestCase):
         self.assertEqual(data["message"], "delete success")
 
     def deletenonexisitingid(self):
-        res = self.client().delete("/deleteuser/tanim", json={"rating": 1})
+        headers = {'Authorization': 'Bearer ' + self.valid_token}
+        res = self.client().delete("/deleteuser/tanim",headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -92,7 +96,8 @@ class castingagencytest(unittest.TestCase):
 
 
     def patchexisitingid(self):
-        res = self.client().patch("updateuser/1/Tanim", json={"rating": 1})
+        headers = {'Authorization': 'Bearer ' + self.valid_token}
+        res = self.client().patch("updateuser/1/Tanim",headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -100,12 +105,23 @@ class castingagencytest(unittest.TestCase):
         self.assertEqual(data["message"], "patch success")
 
     def patchnonexisitingid(self):
-        res = self.client().patch("/updateuser/rat", json={"rating": 1})
+        headers = {'Authorization': 'Bearer ' + self.valid_token}
+        res = self.client().patch("/updateuser/rat",headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data["success"], False)
         self.assertEqual(data["message"], "pagenotfound")
+
+
+    def unauthorized_post(self):
+        headers = {'Authorization': 'Bearer ' + self.invalid_token}
+        res = self.client().post("/createuser/Tanim/Tanom1@example.com/male", headers=headers)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 401)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "Unauthorized")    
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
